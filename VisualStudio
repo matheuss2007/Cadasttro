@@ -1,4 +1,5 @@
 using MySql.Data.MySqlClient;
+using System.Data;
 
 namespace Cadastro
 {
@@ -19,12 +20,12 @@ namespace Cadastro
 
             try
 
-    {
+            {
                 string nome = txtNome.Text;
                 string dataNasc = txtNascimento.Text;
-                string curso = txtCurso.Text;   
-                string telefone = txtTelefone.Text; 
-                if (nome != "" && dataNasc != "" && curso!= "" && telefone!= "")
+                string curso = txtCurso.Text;
+                string telefone = txtTelefone.Text;
+                if (nome != "" && dataNasc != "" && curso != "" && telefone != "")
                 {
                     string conexaoBanco = "Server=localhost; Database=escola; Uid=root; Pwd='';";
                     MySqlConnection conexao = new MySqlConnection(conexaoBanco);
@@ -49,7 +50,7 @@ namespace Cadastro
                     txtCurso.Clear();
                     txtTelefone.Clear();
 
-                   
+
                 }
                 else
                 {
@@ -58,12 +59,187 @@ namespace Cadastro
 
 
             }
-	catch (Exception ex)
+            catch (Exception ex)
 
-    {
-MessageBox.Show("Erro ao relizae cadastro!" + ex. Message);
-                
+            {
+                MessageBox.Show("Erro ao relizae cadastro!" + ex.Message);
+
             }
+        }
+
+        private void btnListar_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                string conexaoBanco = "Server=localhost; Database=escola; Uid=root; Pwd='';";
+                MySqlConnection conexao = new MySqlConnection(conexaoBanco);
+
+                conexao.Open();
+
+                string consultaAlunos = "select * from alunos;";
+
+                MySqlDataAdapter dataAdapter = new MySqlDataAdapter(consultaAlunos, conexao);
+                DataTable dataTable = new DataTable();
+                dataAdapter.Fill(dataTable);
+                dataGridAlunos.DataSource = dataTable;
+                dataGridAlunos.AllowUserToAddRows = false;
+                dataGridAlunos.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
+
+                dataGridAlunos.AutoResizeColumns();
+                dataGridAlunos.ClearSelection();
+
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("erro ao listar dados!" + ex.Message);
+            }
+        }
+        private int alunoIDSelecionado;
+        private void dataGridAlunos_CellDoubleClick(object sender, DataGridViewCellEventArgs e)
+        {
+            try
+            {
+                if (e.RowIndex >= 0)
+                {
+                    alunoIDSelecionado = Convert.ToInt32(dataGridAlunos.Rows[e.RowIndex].Cells["id"].Value);
+
+                    txtNome.Text = dataGridAlunos.Rows[e.RowIndex].Cells["nome"].Value.ToString();
+
+                    string dataNascimento = dataGridAlunos.Rows[e.RowIndex].Cells["dataNascimento"].Value.ToString();
+                    txtNascimento.Text = DateTime.Parse(dataNascimento).ToString("dd/MM/yyyy");
+
+                    txtCurso.Text = dataGridAlunos.Rows[e.RowIndex].Cells["curso"].Value.ToString();
+
+                    txtTelefone.Text = dataGridAlunos.Rows[e.RowIndex].Cells["telefone"].Value.ToString();
+
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Erro ao selecionar aluno!" + ex.Message);
+            }
+        }
+
+        private void btnEditar_Click(object sender, EventArgs e)
+        {
+            try
+
+            {
+                string nome = txtNome.Text;
+                string dataNasc = txtNascimento.Text;
+                string curso = txtCurso.Text;
+                string telefone = txtTelefone.Text;
+
+                if (alunoIDSelecionado > 0)
+                {
+                    if (nome != "" && dataNasc != "" && curso != "" && telefone != "")
+                    {
+                        string conexaoBanco = "Server=localhost; Database=escola; Uid=root; Pwd='';";
+                        MySqlConnection conexao = new MySqlConnection(conexaoBanco);
+
+                        conexao.Open();
+
+                        string atualizarAlunos = "UPDATE alunos SET curso = @curso, telefone =  @telefone WHERE id = @id";
+
+                        MySqlCommand comando = new MySqlCommand(atualizarAlunos, conexao);
+                        comando.Parameters.AddWithValue("@curso", curso);
+                        comando.Parameters.AddWithValue("@telefone", telefone);
+                        comando.Parameters.AddWithValue("@id", alunoIDSelecionado);
+
+                        comando.ExecuteNonQuery();
+                        MessageBox.Show("dados atualizados com sucesso!");
+
+                        txtNome.Clear();
+                        txtNascimento.Clear();
+                        txtCurso.Clear();
+                        txtTelefone.Clear();
+
+
+                    }
+                    else
+                    {
+                        MessageBox.Show("Selecione um registro no datagrid com doubleClick primero!");
+                    }
+
+                }
+
+
+            }
+            catch (Exception ex)
+
+            {
+            }
+        }
+
+        private void btnExcluir_Click(object sender, EventArgs e)
+        {
+            try
+
+            {
+
+                if (alunoIDSelecionado > 0)
+                {
+                    var resultado = MessageBox.Show("Deseja realmente excluir o aluno?", "Excluir Aluno", MessageBoxButtons.YesNo);
+                    if (resultado == DialogResult.Yes)
+                    {
+                        string conexaoBanco = "Server=localhost; Database=escola; Uid=root; Pwd='';";
+                        MySqlConnection conexao = new MySqlConnection(conexaoBanco);
+
+                        conexao.Open();
+
+                        string deletarAluno = "delete from alunos where id =@id ;";
+                        MySqlCommand comando = new MySqlCommand(deletarAluno, conexao);
+                        comando.Parameters.AddWithValue("@id", alunoIDSelecionado);
+
+                        comando.ExecuteNonQuery();
+                        MessageBox.Show("registro apagado com sucesso!");
+                    }
+                    else
+                    {
+                        MessageBox.Show("aluno não foi excluido");
+                    }
+                }
+
+
+
+
+
+
+            }
+            catch (Exception ex)
+
+            {
+                MessageBox.Show("selecione um registror para apagar");
+
+            }
+        }
+
+        private void dataGridAlunos_CellContentClick(object sender, DataGridViewCellEventArgs e)
+        {
+
+        }
+
+        private void dataGridAlunos_CellClick(object sender, DataGridViewCellEventArgs e)
+        {
+            try
+            {
+                if (e.RowIndex >= 0)
+                {
+                    alunoIDSelecionado = Convert.ToInt32(dataGridAlunos.Rows[e.RowIndex].Cells["id"].Value);
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Erro ao selecionar aluno!" + ex.Message);
+            }
+        }
+
+        private void btnLimpar_Click(object sender, EventArgs e)
+        {
+            txtNome.Clear();
+            txtNascimento.Clear();
+            txtCurso.Clear();
+            txtTelefone.Clear();
         }
     }
 }
